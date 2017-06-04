@@ -2,7 +2,28 @@
 
 The passwords of local administrative accounts should be changed regularly and these passwords should be different from one computer to the next.  But how can this been done securely and conveniently?  How can this be done for free?  
 
-The scripts in this project demonstrate how it can be done.  The scripts are intended to be relatively easy to understand and modify (you don't have to be a PowerShell guru, only intermediate skills required).  Error checking was kept to a minimum to reduce clutter, but should be adequate for troubleshooting.  All scripts are in the public domain.  A sample certificate (CER) and private key file (PFX) are included for testing, but in real life you must use your own keys.  
+The scripts in this project demonstrate how it can be done.  The scripts are intended to be relatively easy to understand and modify (you don't have to be a PowerShell guru, only intermediate skills required).  Error checking was kept to a minimum to reduce clutter, but should be adequate for troubleshooting.  All scripts are in the public domain.  A sample certificate (CER) and private key file (PFX) are included for testing, but in real life you must use your own keys.  In the _Securing Windows and PowerShell Automation_ course at SANS ([course SEC505](https://sans.org/sec505)) we set up a PKI for this lab and other labs.
+
+If you would prefer a non-PowerShell commercial product to manage admin passwords, here are few to consider:
+
+* http://www.synergix.com
+* http://www.manageengine.com
+* http://www.cyber-ark.com
+* http://www.liebsoft.com
+* http://www.thycotic.com
+* http://www.courion.com
+* http://www.netwrix.com
+* http://www.autocipher.com
+
+
+## What about Microsoft LAPS?
+There is also Microsoft's own Local Administrator Password Solution (LAPS), which is free too. You can get technical support when using LAPS, and it comes with a GUI client for admins as well as a PowerShell module too.
+
+However, note that LAPS 1) stores passwords in plaintext in the Active Directory database, using AD permissions to restrict access to the passwords, 2) requires an update to the Active Directory schema, 3) requires a Group Policy client-side extension to be installed (an MSI package) on all managed hosts, except for Server Nano, 4) is not for stand-alone servers or workstations because of the Active Directory and Group Policy components, 5) can only be used to manage a maximum of two local user accounts on each machine, no more, 6) we don't have access to the C++ source code of the LAPS client-side extension if we need to customize it, and 7) though the LAPS tools themselves encrypt passwords while in transit over the network, admins must take care to use network encryption when using other tools when reading the passwords out of AD, e.g., a third-party utility might use LDAP in plaintext by default (this has nothing to do with LAPS per se, it's only something to be aware of).
+
+The solution presented below never stores or transmits passwords in plaintext, not even temporarily, does not require an Active Directory schema update (or AD for that matter), does not require a Group Policy extension, works on stand-alone computers, can manage any number of local user accounts, you have access to the PowerShell source code for inspection or customization (it's in the public domain), and it works with any SMB server, including Samba and FreeNAS.
+
+However, the solution does require, at a minimum, PowerShell to be installed and enabled on every managed host, and it scales best in an Active Directory environment with Group Policy. You will also need a digital certificate, either self-signed or from a PKI, but this is a good thing because it uses the public key from the certificate for encryption.
 
 ## Solution
 A trusted administrator should obtain a certificate and private key, then export that certificate to a .CER file into a shared folder (\\server\share\cert.cer).
@@ -12,7 +33,7 @@ Copy the Update-PasswordArchive.ps1 script into that shared folder (\\server\sha
 Using Group Policy, SCCM, a third-party EMS, SCHTASKS.EXE or some other technique, create a scheduled job on every computer that runs once per week (or every night) under Local System context that executes the following command: 
 
 ```powershell
-powershell.exe \\server\share\update-passwordarchive.ps1 -certificatefilepath \\server\share\cert.cer -passwordarchivepath \\server\share -localusername administrator
+powershell.exe \\server\share\Update-PasswordArchive.ps1 -CertificateFilePath \\server\share\cert.cer -PasswordArchivePath \\server\share -LocalUsername administrator
 ```
 
 This resets the password on the local Administrator account, or whatever account is specified, with a 15-25 character, random complex password.  The password is encrypted in memory with the public key of the certificate (cert.cer) and saved to an archive file to the specified share (\\server\share).  
@@ -20,7 +41,7 @@ This resets the password on the local Administrator account, or whatever account
 When a password for a computer (laptop47) needs to be recovered, the trusted administrator should run from their own local computer the following PowerShell script: 
 
 ```powershell
-recover-passwordarchive.ps1 -passwordarchivepath \\server\share -computername laptop47 -username helpdesk
+Recover-PasswordArchive.ps1 -PasswordArchivePath \\server\share -Computername laptop47 -Username helpdesk
 ```
 
 This downloads the necessary encrypted files and decrypts them locally in memory using the private key of the administrator, displaying the plaintext password within PowerShell.
@@ -110,6 +131,7 @@ Attackers may try to corrupt or delete the existing password archive files to pr
 
 To deter file deletions, it's best to store the certificate and archive files in a shared folder whose NTFS permissions only allow the client computer accounts the following permissions:
 
+```
    Principal: Domain Computers
     Apply to: This folder, subfolders and files
        Allow: Full Control
@@ -122,6 +144,7 @@ To deter file deletions, it's best to store the certificate and archive files in
    Principal: Domain Computers
     Apply to: Files only
         Deny: Create files/write data
+```
 
 The trusted administrators can be granted Full Control to the archive files, certificates, and scripts as needed of course.  The above permissions are for just for Domain Computers.  
 
@@ -190,3 +213,21 @@ THE AUTHOR, SUPPLIER OR DISTRIBUTOR HAS BEEN ADVISED OF THE POSSIBILITY OF
 ANY SUCH DAMAGE.  IF YOUR STATE DOES NOT PERMIT THE COMPLETE LIMITATION OF
 LIABILITY, THEN DELETE THIS FILE SINCE YOU ARE NOW PROHIBITED TO HAVE IT.
 
+## Update History
+* 24.Sep.2013: Thanks to Timothy Carroll for uncovering a formatting bug in the password generator found in Update-PasswordArchive.ps1. The fix does not affect compatibility with earlier versions of the other scripts or with previously-created encrypted password files.
+
+* 25.Sep.2013: Added support for the minimum and maximum length of the random password generated.
+
+* 13.Nov.2013: This is a breaking change from the prior 2.x versions. This update adds much improved support for keyboards and code pages outside of US-EN for international users, each encrypted archive file now includes an SHA256 hash for integrity checking, and a StatusMessage property has been added to the output for troubleshooting and easier international conversions.
+
+* 16.Nov.2013: Removed a dependency on .NET Framework 3.5 which, unfortunately, also changed the file format again, hence, at version 4.0.
+
+* 20.May.2014: Updated notes and scripts about incompatibility with CNG key storage providers. Thanks to Daniel F. for the heads up.
+
+* 9.Jun.2015: Updated notes and scripts to warn about certificates not having the Key Encipherment allowed usage.
+
+* 3.Sep.2015: Added a few notes about Microsoft LAPS.
+
+* 22.Oct.2015: Added a note about FIPS Mode incompatibility.
+
+* 1.Jun.2017: Moved to GitHub.

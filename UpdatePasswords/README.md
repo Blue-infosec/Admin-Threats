@@ -1,4 +1,4 @@
-# Randomize Local Administrator Account Passwords and Retrieve The Passwords Securely
+# Randomize Local Administrator Account Passwords and Retrieve The Passwords Securely and Conveniently
 
 The passwords of local administrative accounts should be changed regularly and these passwords should be different from one computer to the next.  But how can this been done securely and conveniently?  How can this be done for free?  
 
@@ -56,6 +56,8 @@ Operating system must be at least Windows XP SP3, Server 2003 SP2, or later.
 The private key for the certificate cannot be managed by a Cryptography Next Generation (CNG) key storage provider; instead, please use the "Microsoft Enhanced Cryptographic Provider", as specified in the template used to create the certificate, not the "Microsoft Software Key Storage Provider" in that template.
 
 Also, the certificate you use must have the "Key Encipherment" purpose in the "Key Usage" list in the properties of that certificate (see the Details tab).  You get this when the template for the certificate on the Certification Authority (CA) has "Encryption" listed as an allowed purpose in the properties of that template (see the Request Handling tab).  
+
+Note that the scripts are not compatible with [FIPS Mode](http://blogs.technet.com/b/secguide/archive/2014/04/07/why-we-re-not-recommending-fips-mode-anymore.aspx) being enabled in Windows.
 
 ## Testing Examples
 Copy the .\UpdatePasswords folder to your hard drive.

@@ -116,14 +116,14 @@ If multiple administrators must be able to recover the plaintext passwords, expo
 
 To delegate authority to different administrators over different computers, simply use different public/private key pairs.  When using Group Policy to create the scheduled job on the machines in an organizational unit, for example, any certificate can be specified, and this does not have to be the same certificate used for all machines in a domain.  The corresponding private keys can be shared with whatever subset of administrators is desired.  If the private key is on a smart card, that card can be physically protected from unauthorized admins.
 
-The update script writes to the Application event log whenever and wherever the script is run (Source: PasswordArchive, Event ID: 9013).
+The update script writes to the Application event log whenever the script is run (Source: PasswordArchive, Event ID: 9013).
 
 The script can only be used to reset the passwords of local accounts, not domain accounts in AD.
 
 ## Threats
 Keep the private key for the certificate used to encrypt the password archive files secure, such as on a smart card.  This is the most important factor.  
 
-If the private key for the certificate is compromised, create a new key pair, replace the certificate file (.CER) in the shared folder, and immediately remotely trigger the scheduled job on all machines using Group Policy, SCHTASKS.EXE or some other technique.  Once all passwords have been changed, the fact that the old private key has been compromised does not mean any current passwords are known. 
+If the private key for the certificate is compromised, create a new key pair, replace the certificate file (.CER) in the shared folder, and immediately remotely trigger the scheduled job on all machines using Group Policy, PowerShell remoting, SCHTASKS.EXE or some other technique.  Once all passwords have been changed, the fact that the old private key has been compromised does not mean any current passwords are known. 
 
 Use an RSA public key which is 2048 bits or larger.  The public key encrypts a random 256-bit Rijndael key, which encrypts the password.  Every file has a different Rijndael key.  RSA and Rijndael are used for maximum backwards compatibility (using AES explicitly in the script requires .NET Framework 3.5 or later).  
 
@@ -203,7 +203,7 @@ dir *+*+* | foreach { $_.LastWriteTime = [DateTime][Int64] $(($_.Name -split '\+
 
 Shouldn't this solution use a database instead of a shared folder?  No, requiring a database would simply make the solution more complex without increasing security or scalability.  The formatting of the filenames effectively allows us to search and manipulate the files like records in a database, DFS gives us high availability and scalability, the encryption of the files can be combined with IPSec/SMB encryption, and backup/recovery of the files couldn't be simpler because they're just normal files.  Most administrators are more comfortable managing files in a shared folder than managing SQL Server or some other database management system.  
 
-Shouldn't this solution have a web interface?  This would defeat the point of using PowerShell, namely, automation.  But it would be easy to layer a web application (or Metro/Modern app) on top of the files to have a nice GUI.
+Shouldn't this solution have a web interface?  This would defeat the point of using PowerShell, namely, automation.  But it would be easy to layer a web application on top of the files to have a nice GUI.
 
 Shouldn't this solution use Protect-CmsMessage, cipher X, hashing algo Y, PowerShell Core compatibility, or Linux support?  Maybe, but I want to keep backwards compatibility. I am thinking about it though...  
 

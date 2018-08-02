@@ -17,9 +17,9 @@ If you would prefer a non-PowerShell commercial product to manage admin password
 
 
 ## What about Microsoft LAPS?
-There is also Microsoft's own Local Administrator Password Solution (LAPS), which is free too. You can get technical support when using LAPS, and it comes with a GUI client for admins as well as a PowerShell module too.
+There is also Microsoft's own Local Administrator Password Solution (LAPS), which is free. You can get technical support when using LAPS, and it comes with a GUI client for admins, and LAPS includes a PowerShell module too.
 
-However, note that LAPS 1) stores passwords in plaintext in the Active Directory database, using AD permissions to restrict access to the passwords, 2) requires an update to the Active Directory schema, 3) requires a Group Policy client-side extension to be installed (an MSI package) on all managed hosts, except for Server Nano, 4) is not for stand-alone servers or workstations because of the Active Directory and Group Policy components, 5) can only be used to manage a maximum of two local user accounts on each machine, no more, 6) we don't have access to the C++ source code of the LAPS client-side extension if we need to customize it, and 7) though the LAPS tools themselves encrypt passwords while in transit over the network, admins must take care to use network encryption when using other tools when reading the passwords out of AD, e.g., a third-party utility might use LDAP in plaintext by default (this has nothing to do with LAPS per se, it's only something to be aware of).
+However, note that LAPS 1) stores passwords in plaintext in the Active Directory database, using AD permissions to restrict access to the passwords, 2) requires an update to the Active Directory schema, 3) requires a Group Policy client-side extension to be installed (an MSI package) on all managed hosts, except for Server Nano, 4) is not for stand-alone servers or workstations because of the Active Directory and Group Policy components, 5) can only be used to manage a maximum of one local user account on each machine, no more, 6) we don't have access to the C++ source code of the LAPS client-side extension if we need to customize it, and 7) though the LAPS tools themselves encrypt passwords while in transit over the network, admins must take care to use network encryption when using other tools when reading the passwords out of AD, e.g., a third-party utility might use LDAP in plaintext by default (this has nothing to do with LAPS per se, it's only something to be aware of).
 
 The solution presented below never stores or transmits passwords in plaintext, not even temporarily, does not require an Active Directory schema update (or AD for that matter), does not require a Group Policy extension, works on stand-alone computers, can manage any number of local user accounts, you have access to the PowerShell source code for inspection or customization (it's in the public domain), and it works with any SMB server, including Samba and FreeNAS.
 
@@ -30,7 +30,7 @@ A trusted administrator should obtain a certificate and private key, then export
 
 Copy the Update-PasswordArchive.ps1 script into that shared folder (\\server\share).
 
-Using Group Policy, SCCM, a third-party EMS, SCHTASKS.EXE or some other technique, create a scheduled job on every computer that runs once per week (or every night) under Local System context that executes the following command: 
+Using Group Policy, SCCM, a third-party EMS, PowerShell, SCHTASKS.EXE or some other method, create a scheduled job on every computer that runs once per week (or every night) under Local System context that executes the following command: 
 
 ```powershell
 powershell.exe \\server\share\Update-PasswordArchive.ps1 -CertificateFilePath \\server\share\cert.cer -PasswordArchivePath \\server\share -LocalUsername administrator

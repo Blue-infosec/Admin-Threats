@@ -205,7 +205,7 @@ Shouldn't this solution use a database instead of a shared folder?  No, requirin
 
 Shouldn't this solution have a web interface?  This would defeat the point of using PowerShell, namely, automation.  But it would be easy to layer a web application (or Metro/Modern app) on top of the files to have a nice GUI.
 
-Shouldn't this solution use Protect-CmsMessage, cipher X, or hashing algo y?  Maybe, but I want to keep backwards compatibility, so I'm thinking about it.
+Shouldn't this solution use Protect-CmsMessage, cipher X, hashing algo Y, PowerShell Core compatibility, or Linux support?  Maybe, but I want to keep backwards compatibility. I am thinking about it though...  
 
 ## Legal
 PUBLIC DOMAIN.  SCRIPTS PROVIDED "AS IS" WITH NO WARRANTIES OR GUARANTEES OF 
@@ -233,3 +233,6 @@ LIABILITY, THEN DELETE THIS FILE SINCE YOU ARE NOW PROHIBITED TO HAVE IT.
 * 22.Oct.2015: Added a note about FIPS Mode incompatibility.
 
 * 1.Jun.2017: Moved to GitHub.
+
+* 17.Jul.2017: Fuzzed the ticks number a tiny bit for the output file name.
+

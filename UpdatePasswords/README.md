@@ -14,10 +14,11 @@ If you would prefer a non-PowerShell commercial product to manage admin password
 * http://www.courion.com
 * http://www.netwrix.com
 * http://www.autocipher.com
+* http://admpwd.com
 
 
 ## What about Microsoft LAPS?
-There is also Microsoft's own Local Administrator Password Solution (LAPS), which is free. You can get technical support when using LAPS, and it comes with a GUI client for admins, and LAPS includes a PowerShell module too.
+There is also Microsoft's own Local Administrator Password Solution (LAPS), which is free. You can get technical support when using LAPS, and it comes with a GUI client for admins. LAPS includes a PowerShell module too.
 
 However, note that LAPS 1) stores passwords in plaintext in the Active Directory database, using AD permissions to restrict access to the passwords, 2) requires an update to the Active Directory schema, 3) requires a Group Policy client-side extension to be installed (an MSI package) on all managed hosts, except for Server Nano, 4) is not for stand-alone servers or workstations because of the Active Directory and Group Policy components, 5) can only be used to manage a maximum of one local user account on each machine, no more, 6) we don't have access to the C++ source code of the LAPS client-side extension if we need to customize it, and 7) though the LAPS tools themselves encrypt passwords while in transit over the network, admins must take care to use network encryption when using other tools when reading the passwords out of AD, e.g., a third-party utility might use LDAP in plaintext by default (this has nothing to do with LAPS per se, it's only something to be aware of).
 
